@@ -4,8 +4,22 @@ var $;
 */
 var winnerStatus = ['Player1', 'Player2', 'Player3', 'Player4', 'Draw'];
 var suits = ['Hearts', 'Clubs', 'Diamonds', 'Spades'];
-var values = ['Ace', 'King', 'Queen', 'Jack', 'Nine', 'Eight', 'Seven', 'Six',
+var values = ['Ace', 'King', 'Queen', 'Jack', 'Ten', 'Nine', 'Eight', 'Seven', 'Six',
     'Five', 'Four', 'Three', 'Two'];
+var handType;
+(function (handType) {
+    handType[handType["RoyalFlush"] = 0] = "RoyalFlush";
+    handType[handType["StraightFlush"] = 1] = "StraightFlush";
+    handType[handType["FourOfAKind"] = 2] = "FourOfAKind";
+    handType[handType["FullHouse"] = 3] = "FullHouse";
+    handType[handType["Flush"] = 4] = "Flush";
+    handType[handType["Straight"] = 5] = "Straight";
+    handType[handType["ThreeOfAKind"] = 6] = "ThreeOfAKind";
+    handType[handType["TwoPairs"] = 7] = "TwoPairs";
+    handType[handType["Pair"] = 8] = "Pair";
+    handType[handType["HighCard"] = 9] = "HighCard";
+})(handType || (handType = {}));
+;
 var PlayerStatus;
 (function (PlayerStatus) {
     PlayerStatus[PlayerStatus["InGame"] = 0] = "InGame";
@@ -42,7 +56,7 @@ var Player = /** @class */ (function () {
                 _this.status = PlayerStatus.Out;
             }
         };
-        this.ClearHand = function () {
+        this.ClearCards = function () {
             _this.cards = [];
         };
         this.points = points;
@@ -51,6 +65,134 @@ var Player = /** @class */ (function () {
     }
     return Player;
 }());
+var Hand = /** @class */ (function () {
+    function Hand(cards) {
+        var _this = this;
+        this.CheckHand = function (cards) {
+            switch (cards.length) {
+                case 5:
+                    var isFlush = CheckFlush(cards);
+                    var straight = CheckStraight(cards);
+                    if (straight === 10 && isFlush) {
+                        _this.type = handType.RoyalFlush;
+                        _this.runStart = straight;
+                    }
+                    else if (straight !== -1 && isFlush) {
+                        _this.type = handType.StraightFlush;
+                        _this.runStart = straight;
+                    }
+                    else if (CheckFour(cards) !== -1) {
+                        _this.type = handType.FourOfAKind;
+                        _this.max1 = CheckFour(cards);
+                    }
+                    else if (CheckTriple(cards) !== -1 && CheckPair(cards, CheckTriple(cards)) !== -1) {
+                        _this.type = handType.FullHouse;
+                        _this.max1 = CheckTriple(cards);
+                        _this.max2 = CheckPair(cards, CheckTriple(cards));
+                    }
+                    else if (isFlush) {
+                        _this.type = handType.Flush;
+                    }
+                    else if (straight !== -1) {
+                        _this.type = handType.Straight;
+                        _this.runStart = straight;
+                    }
+                    else if (CheckTriple(cards) !== -1) {
+                        _this.type = handType.ThreeOfAKind;
+                        _this.max1 = CheckTriple(cards);
+                    }
+                    else if (CheckPair(cards, undefined) !== -1 && CheckPair(cards, CheckPair(cards, undefined)) !== -1) {
+                        _this.type = handType.TwoPairs;
+                        _this.max1 = CheckPair(cards, undefined);
+                        _this.max2 = CheckPair(cards, CheckPair(cards, undefined));
+                    }
+                    else if (CheckPair(cards, undefined) !== -1) {
+                        _this.type = handType.Pair;
+                        _this.max1 = CheckPair(cards, undefined);
+                    }
+                    else {
+                        _this.type = handType.HighCard;
+                        _this.max1 = CheckHighest(cards);
+                    }
+                    break;
+                case 4:
+                    if (CheckFour(cards) !== -1) {
+                        _this.type = handType.FourOfAKind;
+                        _this.max1 = CheckFour(cards);
+                    }
+                    else if (CheckTriple(cards) !== -1) {
+                        _this.type = handType.ThreeOfAKind;
+                        _this.max1 = CheckTriple(cards);
+                    }
+                    else if (CheckPair(cards, undefined) !== -1 && CheckPair(cards, CheckPair(cards, undefined)) !== -1) {
+                        _this.type = handType.TwoPairs;
+                        _this.max1 = CheckPair(cards, undefined);
+                        _this.max2 = CheckPair(cards, CheckPair(cards, undefined));
+                    }
+                    else if (CheckPair(cards, undefined) !== -1) {
+                        _this.type = handType.Pair;
+                        _this.max1 = CheckPair(cards, undefined);
+                    }
+                    else {
+                        _this.type = handType.HighCard;
+                        _this.max1 = CheckHighest(cards);
+                    }
+                    break;
+                case 3:
+                    if (CheckTriple(cards) !== -1) {
+                        _this.type = handType.ThreeOfAKind;
+                        _this.max1 = CheckTriple(cards);
+                    }
+                    else if (CheckPair(cards, undefined) !== -1 && CheckPair(cards, CheckPair(cards, undefined)) !== -1) {
+                        _this.type = handType.TwoPairs;
+                        _this.max1 = CheckPair(cards, undefined);
+                        _this.max2 = CheckPair(cards, CheckPair(cards, undefined));
+                    }
+                    else if (CheckPair(cards, undefined) !== -1) {
+                        _this.type = handType.Pair;
+                        _this.max1 = CheckPair(cards, undefined);
+                    }
+                    else {
+                        _this.type = handType.HighCard;
+                        _this.max1 = CheckHighest(cards);
+                    }
+                    break;
+                default:
+                    if (CheckPair(cards, undefined) !== -1) {
+                        _this.type = handType.Pair;
+                        _this.max1 = CheckPair(cards, undefined);
+                    }
+                    else {
+                        _this.type = handType.HighCard;
+                        _this.max1 = CheckHighest(cards);
+                    }
+                    break;
+            }
+        };
+        if (CheckPair(cards, undefined) !== -1) {
+            this.type = handType.Pair;
+            this.max1 = cards[1].numValue;
+        }
+        else {
+            this.type = handType.HighCard;
+            this.max1 = CheckHighest(cards);
+        }
+    }
+    return Hand;
+}());
+/*
+ -----------------------------Winning States--------------------------
+*/
+var RoyalFlush = []; // A, K, Q, J, 10 - all same suit
+var StraightFlush = []; // Run of 5 cards - all same suit
+var FourOfAKind = []; // All four cards of same rank
+var FullHouse = []; // Triple and a pair
+var Flush = []; // 5 cards of the same suit
+var Straight = []; // Run of 5 cards - any suit
+var ThreeOfAKind = []; // Three cards of the same rank
+var TwoPairs = []; // Two pairs of the same rank
+var Pair = []; // Two cards of the same rank
+var HighCard; // Play your highest cards if none of the others can be achieved
 /*
  --------------------------------Scripts------------------------------
 */
@@ -165,8 +307,6 @@ allInButton.on('click', function () {
 });
 function GetNumericValue(value) {
     switch (value) {
-        case 'Ace':
-            return 1;
         case 'Two':
             return 2;
         case 'Three':
@@ -183,8 +323,16 @@ function GetNumericValue(value) {
             return 8;
         case 'Nine':
             return 9;
-        default:
+        case 'Ten':
             return 10;
+        case 'Jack':
+            return 11;
+        case 'Queen':
+            return 12;
+        case 'King':
+            return 13;
+        case 'Ace':
+            return 14;
     }
     ;
 }
@@ -208,6 +356,8 @@ function GetCardStylingValue(value) {
             return 'card-8';
         case 'Nine':
             return 'card-9';
+        case 'Ten':
+            return 'card-10';
         case 'Jack':
             return 'card-j';
         case 'Queen':
@@ -218,3 +368,93 @@ function GetCardStylingValue(value) {
             return '';
     }
 }
+function CheckHighest(cards) {
+    var maxCard = -1;
+    for (var _i = 0, cards_1 = cards; _i < cards_1.length; _i++) {
+        var card = cards_1[_i];
+        if (card.numValue > maxCard) {
+            maxCard = card.numValue;
+        }
+    }
+    return maxCard;
+}
+function CheckPair(cards, firstPair) {
+    var maxPair = -1;
+    firstPair = firstPair || -1;
+    for (var i = 0; i < cards.length; i++) {
+        for (var j = 1; j < cards.length; j++) {
+            if (i !== j) {
+                if (cards[i].numValue === cards[j].numValue && cards[i].numValue > maxPair && cards[i].numValue !== firstPair) {
+                    maxPair = cards[i].numValue;
+                }
+            }
+        }
+    }
+    return maxPair;
+}
+function CheckTriple(cards) {
+    var maxTriple = -1;
+    for (var i = 0; i < cards.length; i++) {
+        for (var j = 1; j < cards.length; j++) {
+            for (var k = 2; k < cards.length; k++) {
+                if (i !== j && i !== k && j !== k) {
+                    if (cards[i].numValue === cards[j].numValue && cards[i].numValue === cards[k].numValue && cards[i].numValue > maxTriple) {
+                        maxTriple = cards[i].numValue;
+                    }
+                }
+            }
+        }
+    }
+    return maxTriple;
+}
+function CheckStraight(cards) {
+    var maxStraightStart = -1;
+    var arr = [];
+    if (cards.length !== 5)
+        return maxStraightStart;
+    for (var _i = 0, cards_2 = cards; _i < cards_2.length; _i++) {
+        var card = cards_2[_i];
+        arr.push(card.numValue);
+        arr.sort(function (a, b) { return a - b; });
+    }
+    if (arr.lastValue() - arr[0] === 4) {
+        maxStraightStart = arr.lastValue();
+    }
+    return maxStraightStart;
+}
+function CheckFlush(cards) {
+    var isFlush = true;
+    var prevSuit;
+    if (cards.length !== 5)
+        return false;
+    for (var _i = 0, cards_3 = cards; _i < cards_3.length; _i++) {
+        var card = cards_3[_i];
+        if (prevSuit != null && card.suit !== prevSuit) {
+            isFlush = false;
+            break;
+        }
+        else {
+            prevSuit = card.suit;
+        }
+    }
+    return isFlush;
+}
+function CheckFour(cards) {
+    var maxFour = -1;
+    var arr = [];
+    if (cards.length < 4) {
+        return maxFour;
+    }
+    for (var _i = 0, cards_4 = cards; _i < cards_4.length; _i++) {
+        var card = cards_4[_i];
+        arr.push(card.numValue);
+    }
+    arr.sort(function (a, b) { return a - b; });
+    if (arr[0] === arr[3] || (cards.length === 5 && arr[1] === arr[4])) {
+        maxFour = arr[1];
+    }
+    return maxFour;
+}
+Array.prototype.lastValue = function () {
+    return this[this.length - 1];
+};

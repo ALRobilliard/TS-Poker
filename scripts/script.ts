@@ -5,8 +5,10 @@ var $: any;
 
 const winnerStatus: string[] = [ 'Player1', 'Player2',  'Player3', 'Player4', 'Draw' ];
 const suits: string[] = [ 'Hearts', 'Clubs', 'Diamonds', 'Spades' ];
-const values: string[] = ['Ace', 'King', 'Queen', 'Jack', 'Nine', 'Eight', 'Seven', 'Six',
-    'Five', 'Four', 'Three', 'Two'];
+const values: string[] = [ 'Ace', 'King', 'Queen', 'Jack', 'Ten', 'Nine', 'Eight', 'Seven', 'Six',
+    'Five', 'Four', 'Three', 'Two' ];
+enum handType { RoyalFlush, StraightFlush, FourOfAKind, FullHouse, Flush, Straight, 
+    ThreeOfAKind, TwoPairs, Pair, HighCard };
 enum PlayerStatus { InGame, Folded, Out };
 
 /*
@@ -31,6 +33,7 @@ class Player {
     points: number;
     status: PlayerStatus;
     cards: Card[];
+    hand: Hand;
 
     constructor(points: number, cards: Card[]) {
         this.points = points;
@@ -52,10 +55,148 @@ class Player {
             this.status = PlayerStatus.Out;
         }
     }
-    ClearHand = () => {
+    ClearCards = () => {
         this.cards = [];
     }
 }
+
+class Hand {
+    type: handType;
+    max1: number;
+    max2: number;
+    runStart: number;
+    flush: boolean;
+
+    constructor(cards: Card[]) {
+        if (CheckPair(cards, undefined) !== -1) {
+            this.type = handType.Pair;
+            this.max1 = cards[1].numValue;
+        } else {
+            this.type = handType.HighCard;
+            this.max1 = CheckHighest(cards);
+        }
+    }
+    CheckHand = (cards: Card[]) => {
+        switch (cards.length) {
+            case 5:
+                let isFlush = CheckFlush(cards);
+                let straight = CheckStraight(cards);
+                // Royal Flush.
+                if (straight === 10 && isFlush) {
+                    this.type = handType.RoyalFlush;
+                    this.runStart = straight;
+                // Straight Flush.
+                } else if (straight !== -1 && isFlush) {
+                    this.type = handType.StraightFlush;
+                    this.runStart = straight;
+                // Four of a Kind.
+                } else if (CheckFour(cards) !== -1) {
+                    this.type = handType.FourOfAKind;
+                    this.max1 = CheckFour(cards);
+                // Full House.
+                } else if (CheckTriple(cards) !== -1 && CheckPair(cards, CheckTriple(cards)) !== -1) {
+                    this.type = handType.FullHouse;
+                    this.max1 = CheckTriple(cards);
+                    this.max2 = CheckPair(cards, CheckTriple(cards));
+                // Flush.
+                } else if (isFlush) {
+                    this.type = handType.Flush;
+                // Straight.
+                } else if (straight !== -1) {
+                    this.type = handType.Straight;
+                    this.runStart = straight;
+                // Three of a Kind.
+                } else if (CheckTriple(cards) !== -1) {
+                    this.type = handType.ThreeOfAKind;
+                    this.max1 = CheckTriple(cards);
+                // Two Pairs.
+                } else if (CheckPair (cards, undefined) !== -1 && CheckPair(cards, CheckPair(cards, undefined)) !== -1) {
+                    this.type = handType.TwoPairs;
+                    this.max1 = CheckPair(cards, undefined);
+                    this.max2 = CheckPair(cards, CheckPair(cards, undefined));
+                // Pair.
+                } else if (CheckPair(cards, undefined) !== -1) {
+                    this.type = handType.Pair
+                    this.max1 = CheckPair(cards, undefined);
+                // High Card.
+                } else {
+                    this.type = handType.HighCard;
+                    this.max1 = CheckHighest(cards);
+                }
+                break;
+            case 4:
+                // Four of a Kind.
+                if (CheckFour(cards) !== -1) {
+                    this.type = handType.FourOfAKind;
+                    this.max1 = CheckFour(cards);
+                // Three of a Kind.
+                } else if (CheckTriple(cards) !== -1) {
+                    this.type = handType.ThreeOfAKind;
+                    this.max1 = CheckTriple(cards);
+                // Two Pairs.
+                } else if (CheckPair (cards, undefined) !== -1 && CheckPair(cards, CheckPair(cards, undefined)) !== -1) {
+                    this.type = handType.TwoPairs;
+                    this.max1 = CheckPair(cards, undefined);
+                    this.max2 = CheckPair(cards, CheckPair(cards, undefined));
+                // Pair.
+                } else if (CheckPair(cards, undefined) !== -1) {
+                    this.type = handType.Pair
+                    this.max1 = CheckPair(cards, undefined);
+                // High Card.
+                } else {
+                    this.type = handType.HighCard;
+                    this.max1 = CheckHighest(cards);
+                }
+                break;
+            case 3:
+                // Three of a Kind.
+                if (CheckTriple(cards) !== -1) {
+                    this.type = handType.ThreeOfAKind;
+                    this.max1 = CheckTriple(cards);
+                // Two Pairs.
+                } else if (CheckPair (cards, undefined) !== -1 && CheckPair(cards, CheckPair(cards, undefined)) !== -1) {
+                    this.type = handType.TwoPairs;
+                    this.max1 = CheckPair(cards, undefined);
+                    this.max2 = CheckPair(cards, CheckPair(cards, undefined));
+                // Pair.
+                } else if (CheckPair(cards, undefined) !== -1) {
+                    this.type = handType.Pair
+                    this.max1 = CheckPair(cards, undefined);
+                // High Card.
+                } else {
+                    this.type = handType.HighCard;
+                    this.max1 = CheckHighest(cards);
+                }
+                break;
+            default:
+                // Pair.
+                if (CheckPair(cards, undefined) !== -1) {
+                    this.type = handType.Pair
+                    this.max1 = CheckPair(cards, undefined);
+                // High Card.
+                } else {
+                    this.type = handType.HighCard;
+                    this.max1 = CheckHighest(cards);
+                }
+                break;
+        }
+    }
+}
+
+/*
+ -----------------------------Winning States--------------------------
+*/
+
+let RoyalFlush: Card[] = []; // A, K, Q, J, 10 - all same suit
+let StraightFlush: Card[] = []; // Run of 5 cards - all same suit
+let FourOfAKind: Card[] = []; // All four cards of same rank
+let FullHouse: Card[] = []; // Triple and a pair
+let Flush: Card[] = []; // 5 cards of the same suit
+let Straight: Card[] = [] // Run of 5 cards - any suit
+let ThreeOfAKind: Card[] = [] // Three cards of the same rank
+let TwoPairs: Card[] = [] // Two pairs of the same rank
+let Pair: Card[] = [] // Two cards of the same rank
+let HighCard: Card; // Play your highest cards if none of the others can be achieved
 
 /*
  --------------------------------Scripts------------------------------
@@ -195,8 +336,6 @@ allInButton.on('click', function() {
 
 function GetNumericValue(value: string): number {
     switch(value) {
-        case 'Ace':
-            return 1;
         case 'Two':
             return 2;
         case 'Three':
@@ -213,8 +352,16 @@ function GetNumericValue(value: string): number {
             return 8;
         case 'Nine':
             return 9;
-        default:
+        case 'Ten':
             return 10;
+        case 'Jack':
+            return 11;
+        case 'Queen':
+            return 12;
+        case 'King':
+            return 13;
+        case 'Ace':
+            return 14;
     };
 }
 
@@ -238,6 +385,8 @@ function GetCardStylingValue(value: string): string {
             return 'card-8';
         case 'Nine':
             return 'card-9';
+        case 'Ten':
+            return 'card-10';
         case 'Jack':
             return 'card-j';
         case 'Queen':
@@ -247,4 +396,100 @@ function GetCardStylingValue(value: string): string {
         default:
             return '';
     }
+}
+
+function CheckHighest(cards: Card[]): number {
+    let maxCard: number = -1;
+    for (let card of cards) {
+        if (card.numValue > maxCard) {
+            maxCard = card.numValue;
+        }
+    }
+    return maxCard;
+}
+
+function CheckPair(cards: Card[], firstPair: number): number {
+    let maxPair: number = -1;
+    firstPair = firstPair || -1;
+    for (let i = 0; i < cards.length; i++) {
+        for (let j = 1; j < cards.length; j++) {
+            if (i !== j) {
+                if(cards[i].numValue === cards[j].numValue && cards[i].numValue > maxPair && cards[i].numValue !== firstPair) {
+                    maxPair = cards[i].numValue;
+                }
+            }
+        }
+    }
+    return maxPair;
+}
+
+function CheckTriple(cards: Card[]): number {
+    let maxTriple: number = -1;
+    for (let i = 0; i < cards.length; i++) {
+        for (let j = 1; j < cards.length; j++) {
+            for (let k = 2; k < cards.length; k++) {
+                if (i !== j && i !== k && j !== k) {
+                    if (cards[i].numValue === cards[j].numValue && cards[i].numValue === cards[k].numValue && cards[i].numValue > maxTriple) {
+                        maxTriple = cards[i].numValue;
+                    }
+                }
+            }
+        }
+    }
+    return maxTriple;
+}
+
+function CheckStraight(cards: Card[]): number {
+    let maxStraightStart: number = -1;
+    let arr: number[] = [];
+    if (cards.length !== 5)
+        return maxStraightStart;
+    for (let card of cards) {
+        arr.push(card.numValue);
+        arr.sort((a, b) => a - b);
+    }
+    if (arr.lastValue() - arr[0] === 4) {
+        maxStraightStart = arr.lastValue();
+    }
+    return maxStraightStart;
+}
+
+function CheckFlush(cards: Card[]): boolean {
+    let isFlush = true;
+    let prevSuit: string;
+    if (cards.length !== 5)
+        return false;
+    for (let card of cards) {
+        if (prevSuit != null && card.suit !== prevSuit) {
+            isFlush = false;
+            break;
+        } else {
+            prevSuit = card.suit;
+        }
+    }
+    return isFlush;
+}
+
+function CheckFour(cards: Card[]): number {
+    let maxFour: number = -1;
+    let arr: number[] = [];
+    if (cards.length < 4) {
+        return maxFour;
+    }
+    for (let card of cards) {
+        arr.push(card.numValue);
+    }
+    arr.sort((a, b) => a - b);
+    if (arr[0] === arr[3] || (cards.length === 5 && arr[1] === arr[4])) {
+        maxFour = arr[1];
+    }
+    return maxFour;
+}
+
+interface Array<T> {
+    lastValue();
+}
+
+Array.prototype.lastValue = function () {
+    return this[this.length - 1];
 }
