@@ -73,42 +73,52 @@ var Hand = /** @class */ (function () {
                 case 5:
                     var isFlush = CheckFlush(cards);
                     var straight = CheckStraight(cards);
+                    // Royal Flush.
                     if (straight === 10 && isFlush) {
                         _this.type = handType.RoyalFlush;
                         _this.runStart = straight;
+                        // Straight Flush.
                     }
                     else if (straight !== -1 && isFlush) {
                         _this.type = handType.StraightFlush;
                         _this.runStart = straight;
+                        // Four of a Kind.
                     }
                     else if (CheckFour(cards) !== -1) {
                         _this.type = handType.FourOfAKind;
                         _this.max1 = CheckFour(cards);
+                        // Full House.
                     }
                     else if (CheckTriple(cards) !== -1 && CheckPair(cards, CheckTriple(cards)) !== -1) {
                         _this.type = handType.FullHouse;
                         _this.max1 = CheckTriple(cards);
                         _this.max2 = CheckPair(cards, CheckTriple(cards));
+                        // Flush.
                     }
                     else if (isFlush) {
                         _this.type = handType.Flush;
+                        // Straight.
                     }
                     else if (straight !== -1) {
                         _this.type = handType.Straight;
                         _this.runStart = straight;
+                        // Three of a Kind.
                     }
                     else if (CheckTriple(cards) !== -1) {
                         _this.type = handType.ThreeOfAKind;
                         _this.max1 = CheckTriple(cards);
+                        // Two Pairs.
                     }
-                    else if (CheckPair(cards, undefined) !== -1 && CheckPair(cards, CheckPair(cards, undefined)) !== -1) {
+                    else if (CheckPair(cards) !== -1 && CheckPair(cards, CheckPair(cards)) !== -1) {
                         _this.type = handType.TwoPairs;
-                        _this.max1 = CheckPair(cards, undefined);
-                        _this.max2 = CheckPair(cards, CheckPair(cards, undefined));
+                        _this.max1 = CheckPair(cards);
+                        _this.max2 = CheckPair(cards, CheckPair(cards));
+                        // Pair.
                     }
-                    else if (CheckPair(cards, undefined) !== -1) {
+                    else if (CheckPair(cards) !== -1) {
                         _this.type = handType.Pair;
-                        _this.max1 = CheckPair(cards, undefined);
+                        _this.max1 = CheckPair(cards);
+                        // High Card.
                     }
                     else {
                         _this.type = handType.HighCard;
@@ -116,22 +126,27 @@ var Hand = /** @class */ (function () {
                     }
                     break;
                 case 4:
+                    // Four of a Kind.
                     if (CheckFour(cards) !== -1) {
                         _this.type = handType.FourOfAKind;
                         _this.max1 = CheckFour(cards);
+                        // Three of a Kind.
                     }
                     else if (CheckTriple(cards) !== -1) {
                         _this.type = handType.ThreeOfAKind;
                         _this.max1 = CheckTriple(cards);
+                        // Two Pairs.
                     }
-                    else if (CheckPair(cards, undefined) !== -1 && CheckPair(cards, CheckPair(cards, undefined)) !== -1) {
+                    else if (CheckPair(cards) !== -1 && CheckPair(cards, CheckPair(cards)) !== -1) {
                         _this.type = handType.TwoPairs;
-                        _this.max1 = CheckPair(cards, undefined);
-                        _this.max2 = CheckPair(cards, CheckPair(cards, undefined));
+                        _this.max1 = CheckPair(cards);
+                        _this.max2 = CheckPair(cards, CheckPair(cards));
+                        // Pair.
                     }
-                    else if (CheckPair(cards, undefined) !== -1) {
+                    else if (CheckPair(cards) !== -1) {
                         _this.type = handType.Pair;
-                        _this.max1 = CheckPair(cards, undefined);
+                        _this.max1 = CheckPair(cards);
+                        // High Card.
                     }
                     else {
                         _this.type = handType.HighCard;
@@ -139,18 +154,22 @@ var Hand = /** @class */ (function () {
                     }
                     break;
                 case 3:
+                    // Three of a Kind.
                     if (CheckTriple(cards) !== -1) {
                         _this.type = handType.ThreeOfAKind;
                         _this.max1 = CheckTriple(cards);
+                        // Two Pairs.
                     }
-                    else if (CheckPair(cards, undefined) !== -1 && CheckPair(cards, CheckPair(cards, undefined)) !== -1) {
+                    else if (CheckPair(cards) !== -1 && CheckPair(cards, CheckPair(cards)) !== -1) {
                         _this.type = handType.TwoPairs;
-                        _this.max1 = CheckPair(cards, undefined);
-                        _this.max2 = CheckPair(cards, CheckPair(cards, undefined));
+                        _this.max1 = CheckPair(cards);
+                        _this.max2 = CheckPair(cards, CheckPair(cards));
+                        // Pair.
                     }
-                    else if (CheckPair(cards, undefined) !== -1) {
+                    else if (CheckPair(cards) !== -1) {
                         _this.type = handType.Pair;
-                        _this.max1 = CheckPair(cards, undefined);
+                        _this.max1 = CheckPair(cards);
+                        // High Card.
                     }
                     else {
                         _this.type = handType.HighCard;
@@ -158,9 +177,11 @@ var Hand = /** @class */ (function () {
                     }
                     break;
                 default:
-                    if (CheckPair(cards, undefined) !== -1) {
+                    // Pair.
+                    if (CheckPair(cards) !== -1) {
                         _this.type = handType.Pair;
-                        _this.max1 = CheckPair(cards, undefined);
+                        _this.max1 = CheckPair(cards);
+                        // High Card.
                     }
                     else {
                         _this.type = handType.HighCard;
@@ -169,7 +190,7 @@ var Hand = /** @class */ (function () {
                     break;
             }
         };
-        if (CheckPair(cards, undefined) !== -1) {
+        if (CheckPair(cards) !== -1) {
             this.type = handType.Pair;
             this.max1 = cards[1].numValue;
         }

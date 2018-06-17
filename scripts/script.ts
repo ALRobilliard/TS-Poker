@@ -68,7 +68,7 @@ class Hand {
     flush: boolean;
 
     constructor(cards: Card[]) {
-        if (CheckPair(cards, undefined) !== -1) {
+        if (CheckPair(cards) !== -1) {
             this.type = handType.Pair;
             this.max1 = cards[1].numValue;
         } else {
@@ -110,14 +110,14 @@ class Hand {
                     this.type = handType.ThreeOfAKind;
                     this.max1 = CheckTriple(cards);
                 // Two Pairs.
-                } else if (CheckPair (cards, undefined) !== -1 && CheckPair(cards, CheckPair(cards, undefined)) !== -1) {
+                } else if (CheckPair (cards) !== -1 && CheckPair(cards, CheckPair(cards)) !== -1) {
                     this.type = handType.TwoPairs;
-                    this.max1 = CheckPair(cards, undefined);
-                    this.max2 = CheckPair(cards, CheckPair(cards, undefined));
+                    this.max1 = CheckPair(cards);
+                    this.max2 = CheckPair(cards, CheckPair(cards));
                 // Pair.
-                } else if (CheckPair(cards, undefined) !== -1) {
+                } else if (CheckPair(cards) !== -1) {
                     this.type = handType.Pair
-                    this.max1 = CheckPair(cards, undefined);
+                    this.max1 = CheckPair(cards);
                 // High Card.
                 } else {
                     this.type = handType.HighCard;
@@ -134,14 +134,14 @@ class Hand {
                     this.type = handType.ThreeOfAKind;
                     this.max1 = CheckTriple(cards);
                 // Two Pairs.
-                } else if (CheckPair (cards, undefined) !== -1 && CheckPair(cards, CheckPair(cards, undefined)) !== -1) {
+                } else if (CheckPair (cards) !== -1 && CheckPair(cards, CheckPair(cards)) !== -1) {
                     this.type = handType.TwoPairs;
-                    this.max1 = CheckPair(cards, undefined);
-                    this.max2 = CheckPair(cards, CheckPair(cards, undefined));
+                    this.max1 = CheckPair(cards);
+                    this.max2 = CheckPair(cards, CheckPair(cards));
                 // Pair.
-                } else if (CheckPair(cards, undefined) !== -1) {
+                } else if (CheckPair(cards) !== -1) {
                     this.type = handType.Pair
-                    this.max1 = CheckPair(cards, undefined);
+                    this.max1 = CheckPair(cards);
                 // High Card.
                 } else {
                     this.type = handType.HighCard;
@@ -154,14 +154,14 @@ class Hand {
                     this.type = handType.ThreeOfAKind;
                     this.max1 = CheckTriple(cards);
                 // Two Pairs.
-                } else if (CheckPair (cards, undefined) !== -1 && CheckPair(cards, CheckPair(cards, undefined)) !== -1) {
+                } else if (CheckPair (cards) !== -1 && CheckPair(cards, CheckPair(cards)) !== -1) {
                     this.type = handType.TwoPairs;
-                    this.max1 = CheckPair(cards, undefined);
-                    this.max2 = CheckPair(cards, CheckPair(cards, undefined));
+                    this.max1 = CheckPair(cards);
+                    this.max2 = CheckPair(cards, CheckPair(cards));
                 // Pair.
-                } else if (CheckPair(cards, undefined) !== -1) {
+                } else if (CheckPair(cards) !== -1) {
                     this.type = handType.Pair
-                    this.max1 = CheckPair(cards, undefined);
+                    this.max1 = CheckPair(cards);
                 // High Card.
                 } else {
                     this.type = handType.HighCard;
@@ -170,9 +170,9 @@ class Hand {
                 break;
             default:
                 // Pair.
-                if (CheckPair(cards, undefined) !== -1) {
+                if (CheckPair(cards) !== -1) {
                     this.type = handType.Pair
-                    this.max1 = CheckPair(cards, undefined);
+                    this.max1 = CheckPair(cards);
                 // High Card.
                 } else {
                     this.type = handType.HighCard;
@@ -408,7 +408,7 @@ function CheckHighest(cards: Card[]): number {
     return maxCard;
 }
 
-function CheckPair(cards: Card[], firstPair: number): number {
+function CheckPair(cards: Card[], firstPair?: number): number {
     let maxPair: number = -1;
     firstPair = firstPair || -1;
     for (let i = 0; i < cards.length; i++) {
